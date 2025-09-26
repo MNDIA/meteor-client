@@ -20,6 +20,7 @@ import meteordevelopment.orbit.EventPriority;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.BlockHalf;
 import net.minecraft.block.enums.SlabType;
+import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.effect.StatusEffectUtil;
@@ -336,13 +337,46 @@ public class BlockUtils {
 
     // Finds the best block direction to get when interacting with the block.
     public static Direction getDirection(BlockPos pos) {
-        Vec3d eyesPos = new Vec3d(mc.player.getX(), mc.player.getY() + mc.player.getEyeHeight(mc.player.getPose()), mc.player.getZ());
-        if ((double) pos.getY() > eyesPos.y) {
-            if (mc.world.getBlockState(pos.add(0, -1, 0)).isReplaceable()) return Direction.DOWN;
-            else return mc.player.getHorizontalFacing().getOpposite();
+        // Vec3d eyesPos = new Vec3d(mc.player.getX(), mc.player.getY() + mc.player.getEyeHeight(mc.player.getPose()), mc.player.getZ());
+        // if ((double) pos.getY() > eyesPos.y) {
+        //     if (mc.world.getBlockState(pos.add(0, -1, 0)).isReplaceable()) return Direction.DOWN;
+        //     else return mc.player.getHorizontalFacing().getOpposite();
+        // }
+        // if (!mc.world.getBlockState(pos.add(0, 1, 0)).isReplaceable()) return mc.player.getHorizontalFacing().getOpposite();
+        // return Direction.UP;
+
+        ClientPlayerEntity player = mc.player;
+        if (player == null)
+            return null;
+        // Get player eye position
+        Vec3d eyePos = new Vec3d(player.getX(), player.getY() + player.getEyeHeight(player.getPose()), player.getZ());
+	
+
+        // Get block center position
+        Vec3d blockCenter = new Vec3d(
+                pos.getX() + 0.5,
+                pos.getY() + 0.5,
+                pos.getZ() + 0.5);
+
+        // Calculate direction vector from eye to block center
+        Vec3d direction = blockCenter.subtract(eyePos);
+
+        // Get absolute values of direction components
+        double absX = Math.abs(direction.x);
+        double absY = Math.abs(direction.y);
+        double absZ = Math.abs(direction.z);
+
+        // Find which component is largest - this determines which face the ray hits
+        if (absX >= absY && absX >= absZ) {
+            // Ray hits either EAST or WEST face
+            return direction.x > 0 ? Direction.WEST : Direction.EAST;
+        } else if (absY >= absX && absY >= absZ) {
+            // Ray hits either UP or DOWN face
+            return direction.y > 0 ? Direction.DOWN : Direction.UP;
+        } else {
+            // Ray hits either SOUTH or NORTH face
+            return direction.z > 0 ? Direction.NORTH : Direction.SOUTH;
         }
-        if (!mc.world.getBlockState(pos.add(0, 1, 0)).isReplaceable()) return mc.player.getHorizontalFacing().getOpposite();
-        return Direction.UP;
     }
 
     public enum MobSpawn {
