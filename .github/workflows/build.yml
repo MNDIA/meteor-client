@@ -33,6 +33,7 @@ jobs:
         with:
           gradle-version: current
           cache-provider: basic
+          cache-disabled: true
 
       - name: Build
         run: gradle build
